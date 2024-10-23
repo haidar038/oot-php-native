@@ -31,12 +31,44 @@ if (isset($_POST['delete_product'])) {
     exit();
 }
 
+// Handle product creation
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
+    // Handle image upload
+    $target_dir = "../uploads/products/";
+    $file_extension = strtolower(pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION));
+    $file_name = uniqid() . '.' . $file_extension;
+    $target_file = $target_dir . $file_name;
+
+    if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
+        $product->seller_id = $seller_id;
+        $product->category_id = $_POST['category_id'];
+        $product->name = $_POST['name'];
+        $product->description = $_POST['description'];
+        $product->price = $_POST['price'];
+        $product->stock = $_POST['stock'];
+        $product->image = 'uploads/products/' . $file_name;
+
+        if ($product->create()) {
+            $_SESSION['success'] = "Product added successfully";
+            header("Location: products.php");
+            exit();
+        } else {
+            $_SESSION['error'] = "Failed to add product";
+        }
+    } else {
+        $_SESSION['error'] = "Failed to upload image";
+    }
+}
+
 // Pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $records_per_page = 8;
 
 $products = $product->readBySellerPaginated($seller_id, $page, $records_per_page);
 $total_pages = $product->getTotalPagesBySeller($seller_id, $records_per_page);
+
+// Get all categories for the product creation form
+$categories = $category->read();
 
 include_once '../includes/seller_header.php';
 ?>
@@ -45,12 +77,10 @@ include_once '../includes/seller_header.php';
     <div class="row">
         <?php include_once '../includes/seller_sidebar.php'; ?>
 
-        <!-- Main content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div
-                class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">My Products</h1>
-                <a href="add_product.php" class="btn btn-primary">Add New Product</a>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">Add New Product</button>
             </div>
 
             <?php if (isset($_SESSION['success'])): ?>
@@ -133,6 +163,60 @@ include_once '../includes/seller_header.php';
                 </nav>
             <?php endif; ?>
         </main>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProductModalLabel">Add New Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="category_id" class="form-label">Category</label>
+                        <select class="form-select" id="category_id" name="category_id" required>
+                            <option value="">Select Category</option>
+                            <?php while ($row = $categories->fetch(PDO::FETCH_ASSOC)): ?>
+                                <option value="<?php echo $row['id']; ?>"><?php echo $row['name']; ?></option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Product Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price</label>
+                        <input type="number" class="form-control" id="price" name="price" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stock" class="form-label">Stock</label>
+                        <input type="number" class="form-control" id="stock" name="stock" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="featured" class="form-label">Featured</label>
+                        <input type="checkbox" class="form-check-input" id="featured" name="featured" value="1" <?php echo isset($product_data['featured']) && $product_data['featured'] ? 'checked' : ''; ?>>
+                        <small class="form-text text-muted">Check this box to mark the product as featured.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Product Image</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" name="add_product" class="btn btn-primary">Add Product</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 

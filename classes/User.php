@@ -10,6 +10,7 @@ class User
     public $password;
     public $role;
     public $created_at;
+    public $phone;
 
     public function __construct($db)
     {
@@ -107,36 +108,40 @@ class User
     // Fungsi untuk mengupdate data user
     public function update()
     {
-        // Jika password baru diisi, update dengan password baru
+        // If new password is provided, update with new password
         if (!empty($this->password)) {
             $query = "UPDATE " . $this->table_name . "
-                    SET
-                        username = :username,
-                        email = :email,
-                        password = :password
-                    WHERE id = :id";
+                SET
+                    username = :username,
+                    email = :email,
+                    phone = :phone,
+                    password = :password
+                WHERE id = :id";
         } else {
-            // Jika password tidak diisi, update tanpa password
+            // If no new password, update without password
             $query = "UPDATE " . $this->table_name . "
-                    SET
-                        username = :username,
-                        email = :email
-                    WHERE id = :id";
+                SET
+                    username = :username,
+                    email = :email,
+                    phone = :phone
+                WHERE id = :id";
         }
 
         $stmt = $this->conn->prepare($query);
 
-        // Sanitasi input
+        // Sanitize input
         $this->username = htmlspecialchars(strip_tags($this->username));
         $this->email = htmlspecialchars(strip_tags($this->email));
+        $this->phone = htmlspecialchars(strip_tags($this->phone)); // Sanitize phone
         $this->id = htmlspecialchars(strip_tags($this->id));
 
-        // Bind parameter
+        // Bind parameters
         $stmt->bindParam(":username", $this->username);
         $stmt->bindParam(":email", $this->email);
+        $stmt->bindParam(":phone", $this->phone); // Bind phone
         $stmt->bindParam(":id", $this->id);
 
-        // Jika ada password baru, hash dan bind password
+        // If there's a new password, hash and bind it
         if (!empty($this->password)) {
             $this->password = password_hash($this->password, PASSWORD_DEFAULT);
             $stmt->bindParam(":password", $this->password);
@@ -150,7 +155,7 @@ class User
         } catch (PDOException $e) {
             // Handle unique email constraint
             if ($e->getCode() == 23000) {
-                // Email sudah digunakan
+                // Email already in use
                 return false;
             }
             throw $e;

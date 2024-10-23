@@ -283,6 +283,17 @@ class Product
         return $stmt;
     }
 
+    public function getSellerPhone($seller_id)
+    {
+        $query = "SELECT phone FROM users WHERE id = :seller_id LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":seller_id", $seller_id);
+        $stmt->execute();
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? $row['phone'] : null; // Return phone number or null if not found
+    }
+
     public function readBySellerPaginated($seller_id, $page, $records_per_page)
     {
         $offset = ($page - 1) * $records_per_page;

@@ -76,7 +76,7 @@ include_once 'includes/header.php';
         <a href="products.php" class="btn btn-primary">Continue Shopping</a>
     <?php else: ?>
 
-        <form method="post" action="cart.php">
+        <form method="post" action="cart.php" id="cart-form">
             <div class="table-responsive">
                 <table class="table">
                     <thead>
@@ -98,9 +98,9 @@ include_once 'includes/header.php';
                                 <td>Rp <?php echo number_format($item['price'], 0, ',', '.'); ?></td>
                                 <td>
                                     <input type="number" name="quantity[<?php echo $item['id']; ?>]" value="<?php echo $item['quantity']; ?>"
-                                        min="1" max="<?php echo $item['stock']; ?>" class="form-control" style="width: 100px">
+                                        min="1" max="<?php echo $item['stock']; ?>" class="form-control quantity-input" style="width: 100px" data-price="<?php echo $item['price']; ?>">
                                 </td>
-                                <td>Rp <?php echo number_format($item['subtotal'], 0, ',', '.'); ?></td>
+                                <td class="subtotal" data-id="<?php echo $item['id']; ?>">Rp <?php echo number_format($item['subtotal'], 0, ',', '.'); ?></td>
                                 <td>
                                     <a href="cart.php?remove=<?php echo $item['id']; ?>" class="btn btn-danger btn-sm">Remove</a>
                                 </td>
@@ -110,7 +110,7 @@ include_once 'includes/header.php';
                     <tfoot>
                         <tr>
                             <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                            <td><strong>Rp <?php echo number_format($total, 0, ',', '.'); ?></strong></td>
+                            <td><strong id="total">Rp <?php echo number_format($total, 0, ',', '.'); ?></strong></td>
                             <td></td>
                         </tr>
                     </tfoot>
@@ -118,11 +118,34 @@ include_once 'includes/header.php';
             </div>
 
             <div class="d-flex justify-content-between">
-                <button type="submit" name="update_cart" class="btn btn-secondary">Update Cart</button>
                 <a href="checkout.php" class="btn btn-success">Proceed to Checkout</a>
             </div>
         </form>
     <?php endif; ?>
 </div>
+
+<script>
+    // Function to update subtotal and total dynamically
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('input', function() {
+            const price = parseFloat(this.dataset.price);
+            const quantity = parseInt(this.value);
+            const subtotalCell = this.closest('tr').querySelector('.subtotal');
+            const totalCell = document.getElementById('total');
+
+            // Calculate subtotal
+            const subtotal = price * quantity;
+            subtotalCell.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
+
+            // Update total
+            let total = 0;
+            document.querySelectorAll('.subtotal').forEach(cell => {
+                const subtotalValue = parseFloat(cell.textContent.replace('Rp ', '').replace('.', '').replace(',', '.'));
+                total += subtotalValue;
+            });
+            totalCell.textContent = 'Rp ' + total.toLocaleString('id-ID');
+        });
+    });
+</script>
 
 <?php include_once 'includes/footer.php'; ?>

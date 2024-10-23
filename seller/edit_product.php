@@ -4,7 +4,7 @@ include_once '../config/database.php';
 include_once '../classes/Product.php';
 include_once '../classes/Category.php';
 
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'seller') {
     header("Location: ../login.php");
     exit();
 }
@@ -25,7 +25,7 @@ $product_data = $product->readOne();
 $categories = $category->read();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $product->seller_id = $_POST['seller_id'];
+    $product->seller_id = $_SESSION['user_id'];
     $product->category_id = $_POST['category_id'];
     $product->name = $_POST['name'];
     $product->description = $_POST['description'];
@@ -46,6 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header("Location: edit_product.php?id=" . $product->id);
             exit();
         }
+    } else {
+        // Keep the current image if no new image is uploaded
+        $product->image = $product_data['image'];
     }
 
     if ($product->update()) {
@@ -57,12 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-include_once '../includes/admin_header.php';
+include_once '../includes/seller_header.php';
 ?>
 
 <div class="container-fluid">
     <div class="row">
-        <?php include_once '../includes/admin_sidebar.php'; ?>
+        <?php include_once '../includes/seller_sidebar.php'; ?>
 
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -70,20 +73,11 @@ include_once '../includes/admin_header.php';
             </div>
 
             <?php if (isset($_SESSION['error'])): ?>
-                <div class="alert alert-danger">
-                    <?php
-                    echo $_SESSION['error'];
-                    unset($_SESSION['error']);
-                    ?>
-                </div>
+                <div class="alert alert-danger"><?php echo $_SESSION['error'];
+                                                unset($_SESSION['error']); ?></div>
             <?php endif; ?>
 
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"] . "?id=" . $product->id); ?>" method="post" enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label for="seller_id" class="form-label">Seller ID</label>
-                    <input type="number" class="form-control" id="seller_id" name="seller_id" value="<?php echo $product_data['seller_id']; ?>" required>
-                </div>
-
                 <div class="mb-3">
                     <label for="category_id" class="form-label">Category</label>
                     <select class="form-select" id="category_id" name="category_id" required>
@@ -139,4 +133,4 @@ include_once '../includes/admin_header.php';
     </div>
 </div>
 
-<?php include_once '../includes/admin_footer.php'; ?>
+<?php include_once '../includes/seller_footer.php'; ?>

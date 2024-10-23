@@ -4,6 +4,11 @@ class Order
     private $conn;
     private $table_name = "orders";
 
+    public $buyer_id;
+    public $seller_id;
+    public $total_amount;
+    public $status;
+
     public function __construct($db)
     {
         $this->conn = $db;
@@ -101,6 +106,19 @@ class Order
         $stmt->execute();
 
         return $stmt;
+    }
+
+    public function addOrderItem($order_id, $product_id, $quantity)
+    {
+        $query = "INSERT INTO order_items (order_id, product_id, quantity, price)
+              VALUES (:order_id, :product_id, :quantity, (SELECT price FROM products WHERE id = :product_id))";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':order_id', $order_id);
+        $stmt->bindParam(':product_id', $product_id);
+        $stmt->bindParam(':quantity', $quantity);
+
+        return $stmt->execute();
     }
 
     public function getTotalOrdersBySeller($seller_id)
@@ -249,6 +267,36 @@ class Order
         $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row['total'];
+    }
+
+    public function create()
+    {
+        $query = "INSERT INTO " . $this->table_name . "
+                SET
+                    buyer_id = :buyer_id,
+                    seller_id = :seller_id,
+                    total_amount = :total_amount,
+                    status = :status";
+
+        $stmt = $this->conn->prepare($query);
+
+        // Sanitize input
+        $this->buyer_id = htmlspecialchars(strip_tags($this->buyer_id));
+        $this->seller_id = htmlspecialchars(strip_tags($this->seller_id));
+        $this->total_amount = htmlspecialchars(strip_tags($this->total_amount));
+        $this->status = htmlspecialchars(strip_tags($this->status));
+
+        // Bind parameters
+        $stmt->bindParam(":buyer_id", $this->buyer_id);
+        $stmt->bindParam(":seller_id", $this->seller_id);
+        $stmt->bindParam(":total_amount", $this->total_amount);
+        $stmt->bindParam(":status", $this->status);
+
+        // Execute query
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
     }
 
     public function getRecentOrders($limit = 5)

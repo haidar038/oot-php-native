@@ -103,6 +103,12 @@ include_once '../includes/admin_header.php';
                 </div>
 
                 <div class="mb-3">
+                    <label for="featured" class="form-label">Featured</label>
+                    <input type="checkbox" class="form-check-input" id="featured" name="featured" value="1" <?php echo isset($product_data['featured']) && $product_data['featured'] ? 'checked' : ''; ?>>
+                    <small class="form-text text-muted">Check this box to mark the product as featured.</small>
+                </div>
+
+                <div class="mb-3">
                     <label for="image" class="form-label">Product Image</label>
                     <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
                 </div>

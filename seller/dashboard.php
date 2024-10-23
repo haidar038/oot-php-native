@@ -52,7 +52,7 @@ include_once '../includes/seller_header.php';
                 <h1 class="h2">Seller Dashboard</h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
                     <div class="btn-group me-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportReports()">Export Reports</button>
+                        <a href="export_seller_report.php" class="btn btn-sm btn-outline-secondary">Export Orders Report</a>
                     </div>
                 </div>
             </div>
@@ -161,10 +161,6 @@ include_once '../includes/seller_header.php';
             }
         }
     });
-
-    function exportReports() {
-        window.location.href = 'export_reports.php';
-    }
 </script>
 
 <?php include_once '../includes/seller_footer.php'; ?>
