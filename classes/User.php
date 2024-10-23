@@ -158,4 +158,16 @@ class User
 
         return false;
     }
+
+    public function getRecentUsers($limit = 5)
+    {
+        $query = "SELECT * FROM " . $this->table_name . "
+                ORDER BY created_at DESC
+                LIMIT ?";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt;
+    }
 }
