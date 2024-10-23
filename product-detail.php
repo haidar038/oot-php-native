@@ -45,18 +45,14 @@ include_once 'includes/header.php';
             <p><?php echo $product_data['description']; ?></p>
             <p>Stock: <?php echo $product_data['stock']; ?> items</p>
 
-            <form action="cart.php" method="post" class="mb-3">
+            <form action="checkout.php" method="get" class="mb-3">
                 <input type="hidden" name="product_id" value="<?php echo $product_data['id']; ?>">
                 <div class="mb-3">
                     <label for="quantity" class="form-label">Quantity</label>
                     <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" max="<?php echo $product_data['stock']; ?>">
                 </div>
                 <div class="d-grid gap-2">
-                    <button type="submit" name="add_to_cart" class="btn btn-primary">Add to Cart</button>
-                    <a href="https://wa.me/<?php echo $product_data['seller_phone']; ?>?text=<?php echo urlencode("Hi, I'm interested in buying " . $product_data['name']); ?>"
-                        class="btn btn-success" target="_blank">
-                        Contact Seller via WhatsApp
-                    </a>
+                    <button type="submit" class="btn btn-primary">Proceed to Checkout</button>
                 </div>
             </form>
         </div>

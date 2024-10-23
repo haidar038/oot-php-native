@@ -66,6 +66,27 @@ class Order
         return $stmt->execute();
     }
 
+    public function updateOrderStatus($order_id, $new_status)
+    {
+        $valid_statuses = ['pending', 'processing', 'completed', 'cancelled'];
+
+        if (!in_array($new_status, $valid_statuses)) {
+            return false;
+        }
+
+        $query = "UPDATE " . $this->table_name . "
+            SET status = :status,
+                updated_at = NOW()
+            WHERE id = :id";
+
+        $stmt = $this->conn->prepare($query);
+
+        $stmt->bindParam(":status", $new_status);
+        $stmt->bindParam(":id", $order_id);
+
+        return $stmt->execute();
+    }
+
     public function readPaginated($page, $records_per_page)
     {
         $offset = ($page - 1) * $records_per_page;

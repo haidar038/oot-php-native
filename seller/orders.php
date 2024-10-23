@@ -48,7 +48,7 @@ include_once '../includes/seller_header.php';
                         <?php while ($row = $orders->fetch(PDO::FETCH_ASSOC)): ?>
                             <tr>
                                 <td>#<?php echo $row['id']; ?></td>
-                                <td><?php echo $row['buyer_name']; ?></td>
+                                <td><?php echo $row['buyer_id']; ?></td>
                                 <td>Rp <?php echo number_format($row['total_amount'], 0, ',', '.'); ?></td>
                                 <td>
                                     <span class="badge bg-<?php echo getStatusBadgeClass($row['status']); ?>">
