@@ -71,6 +71,14 @@ CREATE TABLE reviews (
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
+CREATE TABLE settings (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    site_name VARCHAR(100) NOT NULL,
+    site_description TEXT,
+    contact_email VARCHAR(100),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- Insert default admin user
 INSERT INTO
     users (
