@@ -24,7 +24,7 @@ fputcsv($output, array('Order ID', 'Buyer', 'Total Amount', 'Status', 'Date'));
 
 // Get seller's orders
 $seller_id = $_SESSION['user_id'];
-$orders = $order->getUserOrders($seller_id);
+$orders = $order->getUserOrders($seller_id, $page, $records_per_page); // Pass pagination parameters
 
 // Add data rows
 while ($row = $orders->fetch(PDO::FETCH_ASSOC)) {

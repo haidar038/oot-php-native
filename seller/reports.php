@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once '../config/database.php';
+include_once '../config/functions.php';
 include_once '../classes/Order.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'seller') {
@@ -14,8 +15,12 @@ $db = $database->getConnection();
 $order = new Order($db);
 $seller_id = $_SESSION['user_id'];
 
+// Pagination
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$records_per_page = 10;
+
 // Get seller's orders
-$orders = $order->getUserOrders($seller_id);
+$orders = $order->getUserOrders($seller_id, $page, $records_per_page);
 
 include_once '../includes/seller_header.php';
 ?>

@@ -15,9 +15,15 @@ $db = $database->getConnection();
 $user = new User($db);
 $order = new Order($db);
 
+$seller_id = $_SESSION['user_id'];
+
+// Pagination
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$records_per_page = 10;
+
 $user->id = $_SESSION['user_id'];
 $user_data = $user->readOne();
-$orders = $order->getUserOrders($_SESSION['user_id']);
+$orders = $order->getUserOrders($seller_id, $page, $records_per_page); // Pass pagination parameters
 
 $update_success = $update_error = "";
 

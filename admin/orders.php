@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once '../config/database.php';
+include_once '../config/functions.php';
 include_once '../classes/Order.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
@@ -13,17 +14,16 @@ $db = $database->getConnection();
 
 $order = new Order($db);
 
-// Handle status update
+// Handle status update with AJAX
 if (isset($_POST['update_status'])) {
     $order_id = $_POST['order_id'];
     $new_status = $_POST['status'];
-    if ($order->updateStatus($order_id, $new_status)) {
-        $_SESSION['success'] = "Order status updated successfully";
+    if ($order->updateOrderStatus($order_id, $new_status)) {
+        echo json_encode(['status' => 'success', 'message' => 'Order status updated!']);
     } else {
-        $_SESSION['error'] = "Failed to update order status";
+        echo json_encode(['status' => 'error', 'message' => 'Update failed.']);
     }
-    header("Location: orders.php");
-    exit();
+    exit; // Important: Stop further execution after AJAX response
 }
 
 // Pagination
@@ -119,31 +119,18 @@ include_once '../includes/admin_header.php';
                                             </div>
 
                                             <h6>Order Items</h6>
-                                            <div class="table-responsive">
-                                                <table class="table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Product</th>
-                                                            <th>Price</th>
-                                                            <th>Quantity</th>
-                                                            <th>Subtotal</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <?php
-                                                        $order_items = $order->getOrderItems($row['id']);
-                                                        while ($item = $order_items->fetch(PDO::FETCH_ASSOC)):
-                                                        ?>
-                                                            <tr>
-                                                                <td><?php echo $item['product_name']; ?></td>
-                                                                <td>Rp <?php echo number_format($item['price'], 0, ',', '.'); ?></td>
-                                                                <td><?php echo $item['quantity']; ?></td>
-                                                                <td>Rp <?php echo number_format($item['price'] * $item['quantity'], 0, ',', '.'); ?></td>
-                                                            </tr>
-                                                        <?php endwhile; ?>
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                            <ul class="list-group list-group-flush">
+                                                <?php
+                                                $order_items = $order->getOrderItems($row['id']);
+                                                while ($item = $order_items->fetch(PDO::FETCH_ASSOC)):
+                                                ?>
+                                                    <li class="list-group-item">Product: <?php echo $item['product_name']; ?></li>
+                                                    <li class="list-group-item">Price: Rp <?php echo number_format($item['price'], 0, ',', '.'); ?></li>
+                                                    <li class="list-group-item">Quantity: <?php echo $item['quantity']; ?></li>
+                                                    <li class="list-group-item">Subtotal: Rp <?php echo number_format($item['price'] * $item['quantity'], 0, ',', '.'); ?></li>
+
+                                                <?php endwhile; ?>
+                                            </ul>
 
                                             <form action="orders.php" method="post" class="mt-3">
                                                 <input type="hidden" name="order_id" value="<?php echo $row['id']; ?>">

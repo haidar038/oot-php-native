@@ -23,15 +23,21 @@ class Order
         return $row['total'];
     }
 
-    public function getUserOrders($user_id)
+    public function getUserOrders($user_id, $page, $records_per_page)
     {
-        $query = "SELECT * FROM " . $this->table_name . "
-                WHERE buyer_id = ? OR seller_id = ?
-                ORDER BY created_at DESC";
+        $offset = ($page - 1) * $records_per_page;
+        $query = "SELECT o.*, u.username AS buyer_name, u.email AS buyer_email, u.phone AS buyer_phone 
+              FROM " . $this->table_name . " o
+              LEFT JOIN users u ON o.buyer_id = u.id
+              WHERE o.buyer_id = :buyer_id OR o.seller_id = :seller_id
+              ORDER BY o.created_at DESC
+              LIMIT :offset, :records_per_page"; // Consistent named parameters
 
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $user_id);
-        $stmt->bindParam(2, $user_id);
+        $stmt->bindParam(':buyer_id', $user_id);     // Named parameter
+        $stmt->bindParam(':seller_id', $user_id);    // Named parameter
+        $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindParam(':records_per_page', $records_per_page, PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt;
@@ -91,7 +97,7 @@ class Order
     {
         $offset = ($page - 1) * $records_per_page;
 
-        $query = "SELECT o.*, u.username as buyer_name, s.username as seller_name
+        $query = "SELECT o.*, u.username as buyer_name, s.username as seller_name, u.email AS buyer_email, u.phone AS buyer_phone
               FROM " . $this->table_name . " o
               LEFT JOIN users u ON o.buyer_id = u.id
               LEFT JOIN users s ON o.seller_id = s.id

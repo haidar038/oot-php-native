@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once '../config/database.php';
+include_once '../config/functions.php';
 include_once '../classes/Order.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'seller') {
@@ -18,7 +19,7 @@ $seller_id = $_SESSION['user_id'];
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $records_per_page = 10;
 
-$orders = $order->getUserOrders($seller_id);
+$orders = $order->getUserOrders($seller_id, $page, $records_per_page); // Pass pagination parameters
 $total_pages = $order->getTotalPages($records_per_page);
 
 include_once '../includes/seller_header.php';
@@ -48,7 +49,7 @@ include_once '../includes/seller_header.php';
                         <?php while ($row = $orders->fetch(PDO::FETCH_ASSOC)): ?>
                             <tr>
                                 <td>#<?php echo $row['id']; ?></td>
-                                <td><?php echo $row['buyer_id']; ?></td>
+                                <td><?php echo $row['buyer_name']; ?></td> <!-- Display buyer_name -->
                                 <td>Rp <?php echo number_format($row['total_amount'], 0, ',', '.'); ?></td>
                                 <td>
                                     <span class="badge bg-<?php echo getStatusBadgeClass($row['status']); ?>">
