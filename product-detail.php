@@ -45,16 +45,28 @@ include_once 'includes/header.php';
             <p><?php echo $product_data['description']; ?></p>
             <p>Stock: <?php echo $product_data['stock']; ?> items</p>
 
-            <form action="checkout.php" method="get" class="mb-3">
+            <!-- Add to Cart Form -->
+            <form action="cart.php" method="post" class="mb-3">
                 <input type="hidden" name="product_id" value="<?php echo $product_data['id']; ?>">
                 <div class="mb-3">
                     <label for="quantity" class="form-label">Quantity</label>
                     <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" max="<?php echo $product_data['stock']; ?>">
                 </div>
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary">Proceed to Checkout</button>
-                </div>
+                <button type="submit" name="add_to_cart" class="btn btn-primary">Add to Cart</button>
             </form>
+
+            <!-- Direct Purchase Button -->
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <form action="checkout.php" method="get" class="mb-3">
+                    <input type="hidden" name="product_id" value="<?php echo $product_data['id']; ?>">
+                    <input type="hidden" name="quantity" value="1"> <!-- Default quantity -->
+                    <button type="submit" class="btn btn-success">Beli Secara Langsung</button>
+                </form>
+            <?php else: ?>
+                <a href="https://wa.me/<?php echo $product_data['seller_phone']; ?>?text=Hello, I would like to confirm my order for <?php echo $product_data['name']; ?>." class="btn btn-success" target="_blank">
+                    Beli Secara Langsung via WhatsApp
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 

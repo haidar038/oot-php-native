@@ -23,15 +23,29 @@ class Order
         return $row['total'];
     }
 
+    // Metode untuk mengambil satu pesanan
+    public function readOne($order_id)
+    {
+        $query = "SELECT o.*, u.username AS buyer_name, u.email AS buyer_email, u.phone AS buyer_phone
+                  FROM " . $this->table_name . " o
+                  LEFT JOIN users u ON o.buyer_id = u.id
+                  WHERE o.id = ?
+                  LIMIT 0,1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $order_id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public function getUserOrders($user_id, $page, $records_per_page)
     {
         $offset = ($page - 1) * $records_per_page;
         $query = "SELECT o.*, u.username AS buyer_name, u.email AS buyer_email, u.phone AS buyer_phone 
-              FROM " . $this->table_name . " o
-              LEFT JOIN users u ON o.buyer_id = u.id
-              WHERE o.buyer_id = :buyer_id OR o.seller_id = :seller_id
-              ORDER BY o.created_at DESC
-              LIMIT :offset, :records_per_page"; // Consistent named parameters
+                  FROM " . $this->table_name . " o
+                  LEFT JOIN users u ON o.buyer_id = u.id
+                  WHERE o.buyer_id = :buyer_id OR o.seller_id = :seller_id
+                  ORDER BY o.created_at DESC
+                  LIMIT :offset, :records_per_page"; // Consistent named parameters
 
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':buyer_id', $user_id);     // Named parameter
@@ -58,16 +72,38 @@ class Order
         return $stmt;
     }
 
+    public function getSellerOrders($seller_id, $page, $records_per_page)
+    {
+        $offset = ($page - 1) * $records_per_page;
+        $query = "SELECT o.*, u.username AS buyer_name 
+                  FROM " . $this->table_name . " o
+                  LEFT JOIN users u ON o.buyer_id = u.id
+                  WHERE o.seller_id = :seller_id
+                  ORDER BY o.created_at DESC
+                  LIMIT :offset, :records_per_page";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':seller_id', $seller_id, PDO::PARAM_INT);
+        $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindParam(':records_per_page', $records_per_page, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt;
+    }
+
     public function updateStatus($order_id, $new_status)
     {
         $query = "UPDATE " . $this->table_name . " SET status = :status WHERE id = :id";
         $stmt = $this->conn->prepare($query);
 
-        $new_status = htmlspecialchars(strip_tags($new_status));
-        $order_id = htmlspecialchars(strip_tags($order_id));
+        // Validasi status
+        $valid_statuses = ['pending', 'processing', 'completed', 'cancelled'];
+        if (!in_array($new_status, $valid_statuses)) {
+            return false;
+        }
 
         $stmt->bindParam(":status", $new_status);
-        $stmt->bindParam(":id", $order_id);
+        $stmt->bindParam(":id", $order_id, PDO::PARAM_INT);
 
         return $stmt->execute();
     }
@@ -116,6 +152,16 @@ class Order
     {
         $query = "SELECT COUNT(*) as total FROM " . $this->table_name;
         $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return ceil($row['total'] / $records_per_page);
+    }
+
+    public function getTotalPagesForSeller($seller_id, $records_per_page)
+    {
+        $query = "SELECT COUNT(*) as total FROM " . $this->table_name . " WHERE seller_id = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $seller_id);
         $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return ceil($row['total'] / $records_per_page);

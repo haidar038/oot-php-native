@@ -20,7 +20,7 @@ $user = new User($db);
 // Handle order cancellation
 if (isset($_POST['cancel_order'])) {
     $order->updateStatus($_GET['order_id'], 'cancelled');
-    header("Location: orders.php");
+    header("Location: cart.php");
     exit();
 }
 
